@@ -1,0 +1,48 @@
+{
+  "mcp_id": "eu.ansvar/cypriot-data-protection-mcp",
+  "authority": {
+    "name": "Commissioner for Personal Data Protection",
+    "abbreviation": "CDPC",
+    "country": "CY",
+    "url": "https://www.dataprotection.gov.cy/"
+  },
+  "sources": [
+    {
+      "id": "cdpc-decisions",
+      "name": "CDPC Decisions & Sanctions",
+      "document_types": ["decision", "sanction", "warning", "reprimand"],
+      "languages": ["el", "en"],
+      "coverage_start": null,
+      "coverage_end": null,
+      "known_gaps": [
+        "Older decisions (pre-2018) may be incomplete",
+        "Greek-only decisions may lack English translation"
+      ]
+    },
+    {
+      "id": "cdpc-guidelines",
+      "name": "CDPC Guidance Documents",
+      "document_types": ["guide", "recommendation", "faq", "template"],
+      "languages": ["el", "en"],
+      "coverage_start": null,
+      "coverage_end": null,
+      "known_gaps": [
+        "Not all guidance documents have English translations"
+      ]
+    }
+  ],
+  "topics_covered": [
+    "consent",
+    "cookies",
+    "data_breach",
+    "data_subject_rights",
+    "dpia",
+    "employee_monitoring",
+    "international_transfers",
+    "lawful_basis",
+    "special_categories",
+    "video_surveillance"
+  ],
+  "language_notes": "Primary language is Greek (el). English (en) versions available for selected documents.",
+  "update_frequency": "Periodic — run npm run ingest to refresh"
+}

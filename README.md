@@ -90,18 +90,20 @@ npx @ansvar/cypriot-data-protection-mcp
 
 ---
 
-## Available Tools (6)
+## Available Tools (8)
 
 | Tool | Description |
 |------|-------------|
-| `cy_dp_search_decisions` | Full-text search across CDPC (Commissioner for Personal Data Protection) decisions and sanctions. Returns matching de... |
+| `cy_dp_search_decisions` | Full-text search across CDPC decisions and sanctions. Returns matching decisions with reference, entity name, fine amount, and GDPR articles cited. |
 | `cy_dp_get_decision` | Get a specific CDPC decision by reference number. |
 | `cy_dp_search_guidelines` | Search CDPC guidance documents: recommendations, guidelines, and FAQs on GDPR implementation in Cyprus. |
 | `cy_dp_get_guideline` | Get a specific CDPC guidance document by its database ID. |
 | `cy_dp_list_topics` | List all covered data protection topics with English names. Use topic IDs to filter decisions and guidelines. |
 | `cy_dp_about` | Return metadata about this MCP server: version, data source, coverage, and tool list. |
+| `cy_dp_list_sources` | List all data sources with provenance metadata (authority, URL, data types, languages, known limitations). |
+| `cy_dp_check_data_freshness` | Report record counts and latest dates per source to check how current the data is. |
 
-All tools return structured data with source references and timestamps.
+All tools return structured data. See [TOOLS.md](TOOLS.md) for full parameter documentation.
 
 ---
 
@@ -117,7 +119,7 @@ All content is sourced from official Cypriot regulatory publications:
 - Freshness checks run via GitHub Actions workflows
 - Last-updated timestamps in tool responses indicate data age
 
-See `sources.yml` for full provenance metadata.
+See [COVERAGE.md](COVERAGE.md) for full corpus scope and `data/coverage.json` for machine-readable provenance metadata.
 
 ---
 
@@ -167,21 +169,20 @@ git clone https://github.com/Ansvar-Systems/cypriot-data-protection-mcp
 cd cypriot-data-protection-mcp
 npm install
 npm run build
-npm test
 ```
 
 ### Running Locally
 
 ```bash
-npm run dev                                       # Start MCP server
-npx @anthropic/mcp-inspector node dist/index.js   # Test with MCP Inspector
+npm run dev                                       # Start MCP server (HTTP)
+npx @anthropic/mcp-inspector node dist/src/index.js   # Test with MCP Inspector
 ```
 
 ### Data Management
 
 ```bash
-npm run build:db       # Rebuild SQLite database from seed data
-npm run check-updates  # Check for new regulatory data
+npm run seed     # Seed SQLite database with sample data
+npm run ingest   # Ingest data from official CDPC sources
 ```
 
 ---
@@ -218,7 +219,7 @@ Apache License 2.0. See [LICENSE](./LICENSE) for details.
 
 ### Data Licenses
 
-Regulatory data sourced from official government publications. See `sources.yml` for per-source licensing details.
+Regulatory data sourced from official government publications. See [COVERAGE.md](COVERAGE.md) for per-source details.
 
 ---
 
