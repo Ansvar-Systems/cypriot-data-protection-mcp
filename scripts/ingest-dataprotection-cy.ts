@@ -1159,13 +1159,13 @@ async function fetchAndParseEntry(entry: IndexEntry): Promise<ParsedDetail> {
   // Check if the HTML page contains a PDF link we should also fetch
   const $ = cheerio.load(html);
   let pdfLink: string | null = null;
-  $("a[href]").each((_i, el) => {
-    if (pdfLink) return;
+  for (const el of $("a[href]").toArray()) {
+    if (pdfLink) break;
     const href = $(el).attr("href") ?? "";
     if (isPdfUrl(href)) {
       pdfLink = normaliseUrl(href);
     }
-  });
+  }
 
   // If a PDF is found and the HTML body is short, supplement with PDF text
   if (pdfLink && detail.bodyText.length < 200) {
