@@ -150,6 +150,26 @@ const TOOLS = [
       required: [],
     },
   },
+  {
+    name: "cy_dp_list_sources",
+    description:
+      "List all data sources used by this server, with provenance metadata including authority name, URL, data type, language, and known limitations.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {},
+      required: [],
+    },
+  },
+  {
+    name: "cy_dp_check_data_freshness",
+    description:
+      "Report the freshness of each data source: last ingestion date, record counts, and whether updates are available. Use this to understand how current the data is.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {},
+      required: [],
+    },
+  },
 ];
 
 // --- Zod schemas for argument validation --------------------------------------
@@ -178,11 +198,21 @@ const GetGuidelineArgs = z.object({
 
 // --- Helper ------------------------------------------------------------------
 
+const META = {
+  disclaimer:
+    "Data sourced from CDPC (Commissioner for Personal Data Protection, Cyprus). For research only — not legal advice. Verify against primary sources before making compliance decisions.",
+  copyright: "© Commissioner for Personal Data Protection, Cyprus",
+  source_url: "https://www.dataprotection.gov.cy/",
+  data_age:
+    "Database is updated periodically and may lag official publications by days to weeks.",
+};
+
 function textContent(data: unknown) {
   return {
     content: [
       { type: "text" as const, text: JSON.stringify(data, null, 2) },
     ],
+    _meta: META,
   };
 }
 
@@ -267,6 +297,70 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             topics: "Cookies, employee monitoring, video surveillance, data breach, consent, DPIA, transfers, data subject rights",
           },
           tools: TOOLS.map((t) => ({ name: t.name, description: t.description })),
+        });
+      }
+
+      case "cy_dp_list_sources": {
+        return textContent({
+          sources: [
+            {
+              id: "cdpc-decisions",
+              name: "CDPC Decisions & Sanctions",
+              authority: "Commissioner for Personal Data Protection",
+              country: "CY",
+              url: "https://www.dataprotection.gov.cy/dataprotection/dataprotection.nsf/home_en/home_en?opendocument",
+              data_types: ["decisions", "sanctions", "warnings", "reprimands"],
+              languages: ["el", "en"],
+              license: "Official government publication",
+              known_limitations:
+                "Coverage may be incomplete for older decisions. Greek-language decisions may not have English translations.",
+            },
+            {
+              id: "cdpc-guidelines",
+              name: "CDPC Guidance Documents",
+              authority: "Commissioner for Personal Data Protection",
+              country: "CY",
+              url: "https://www.dataprotection.gov.cy/dataprotection/dataprotection.nsf/home_en/home_en?opendocument",
+              data_types: ["guidelines", "recommendations", "faqs", "templates"],
+              languages: ["el", "en"],
+              license: "Official government publication",
+              known_limitations:
+                "Not all guidance documents are available in English.",
+            },
+          ],
+        });
+      }
+
+      case "cy_dp_check_data_freshness": {
+        const db = (await import("./db.js")).getDb();
+        const decisionCount = (
+          db.prepare("SELECT COUNT(*) as n FROM decisions").get() as { n: number }
+        ).n;
+        const guidelineCount = (
+          db.prepare("SELECT COUNT(*) as n FROM guidelines").get() as { n: number }
+        ).n;
+        const latestDecision = db
+          .prepare("SELECT MAX(date) as d FROM decisions WHERE date IS NOT NULL")
+          .get() as { d: string | null };
+        const latestGuideline = db
+          .prepare("SELECT MAX(date) as d FROM guidelines WHERE date IS NOT NULL")
+          .get() as { d: string | null };
+        return textContent({
+          sources: [
+            {
+              id: "cdpc-decisions",
+              record_count: decisionCount,
+              latest_record_date: latestDecision?.d ?? null,
+              status: decisionCount > 0 ? "populated" : "empty",
+            },
+            {
+              id: "cdpc-guidelines",
+              record_count: guidelineCount,
+              latest_record_date: latestGuideline?.d ?? null,
+              status: guidelineCount > 0 ? "populated" : "empty",
+            },
+          ],
+          note: "Run npm run ingest to refresh data from source.",
         });
       }
 
