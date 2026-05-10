@@ -54,7 +54,19 @@ COPY package.json package-lock.json* ./
 # Bake the pre-built database into the image so /app/data/cdpc.db resolves
 # at runtime without a bind mount. This matches the working pattern in
 # swedish-data-protection-mcp's GHCR image.
-COPY data/ data/
+#
+# The explicit `data/cdpc.db` reference is required — `.github/workflows/
+# ghcr-build.yml` greps the Dockerfile with `COPY\s+\K(data/\S+\.db)` to
+# decide whether to download the gitignored DB from a GitHub Release. A
+# directory-form `COPY data/` would be skipped by that regex and the DB
+# would never reach the image.
+# `data/database.db` is provisioned by ghcr-build.yml's "Provision database"
+# step — it `gh release download`s `database.db.gz` and gunzips to that path.
+# We then COPY it into the image at /app/data/cdpc.db (CDPC_DB_PATH). The
+# explicit `data/<name>.db` reference is required for the workflow's grep
+# `COPY\s+\K(data/\S+\.db)` to match.
+COPY data/database.db data/cdpc.db
+COPY data/cdpc-index.json data/cdpc-progress.json data/coverage.json data/
 
 # Non-root user for security
 RUN addgroup --system --gid 1001 mcp \
