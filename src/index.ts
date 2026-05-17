@@ -26,7 +26,7 @@ import {
   getGuideline,
   listTopics,
 } from "./db.js";
-import { buildCitation } from "./citation.js";
+import { buildCitation, buildItemAttribution } from "./citation.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -248,7 +248,16 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           topic: parsed.topic,
           limit: parsed.limit,
         });
-        return textContent({ results, count: results.length });
+        const resultsWithCitation = results.map((__r) => {
+          const __row = __r as unknown as Record<string, unknown>;
+          return {
+            ...__row,
+            _citation: buildItemAttribution(
+              __row["url"] != null ? String(__row["url"]) : (__row["source_url"] != null ? String(__row["source_url"]) : undefined),
+            ),
+          };
+        });
+        return textContent({ results: resultsWithCitation, count: resultsWithCitation.length });
       }
 
       case "cy_dp_get_decision": {
@@ -277,7 +286,16 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           topic: parsed.topic,
           limit: parsed.limit,
         });
-        return textContent({ results, count: results.length });
+        const resultsWithCitation = results.map((__r) => {
+          const __row = __r as unknown as Record<string, unknown>;
+          return {
+            ...__row,
+            _citation: buildItemAttribution(
+              __row["url"] != null ? String(__row["url"]) : (__row["source_url"] != null ? String(__row["source_url"]) : undefined),
+            ),
+          };
+        });
+        return textContent({ results: resultsWithCitation, count: resultsWithCitation.length });
       }
 
       case "cy_dp_get_guideline": {
@@ -300,7 +318,16 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       case "cy_dp_list_topics": {
         const topics = listTopics();
-        return textContent({ topics, count: topics.length });
+        const topicsWithCitation = topics.map((__r) => {
+          const __row = __r as unknown as Record<string, unknown>;
+          return {
+            ...__row,
+            _citation: buildItemAttribution(
+              __row["url"] != null ? String(__row["url"]) : (__row["source_url"] != null ? String(__row["source_url"]) : undefined),
+            ),
+          };
+        });
+        return textContent({ topics: topicsWithCitation, count: topicsWithCitation.length });
       }
 
       case "cy_dp_about": {
