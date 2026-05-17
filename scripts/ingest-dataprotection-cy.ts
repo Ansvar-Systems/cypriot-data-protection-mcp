@@ -1167,12 +1167,17 @@ async function fetchAndParseEntry(entry: IndexEntry): Promise<ParsedDetail> {
     }
   });
 
-  // If a PDF is found and the HTML body is short, supplement with PDF text
-  if (pdfLink && detail.bodyText.length < 200) {
-    console.log(`    Supplementing with PDF: ${pdfLink.slice(0, 100)}...`);
+  // If a PDF is found and the HTML body is short, supplement with PDF text.
+  // The `as string | null` cast is load-bearing — TS narrows `pdfLink`
+  // to `null` at this site because it doesn't track assignments inside
+  // the `$().each()` closure above. Without the cast the truthy guard
+  // below narrows further to `never` and `slice()` doesn't exist on never.
+  const pdfUrl = pdfLink as string | null;
+  if (pdfUrl && detail.bodyText.length < 200) {
+    console.log(`    Supplementing with PDF: ${pdfUrl.slice(0, 100)}...`);
     try {
       await sleep(RATE_LIMIT_MS);
-      const pdfBuf = await fetchBinaryWithRetry(pdfLink);
+      const pdfBuf = await fetchBinaryWithRetry(pdfUrl);
       const pdfText = extractTextFromPdfBuffer(pdfBuf);
       if (pdfText.length > detail.bodyText.length) {
         detail.bodyText = pdfText;
